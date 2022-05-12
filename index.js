@@ -1,32 +1,24 @@
-const express = require('express');
-const app=express();
-const router = express.Router();
-const cors=require('cors');
+const { parse } = require('path')
+const serialPort = require('serialport')
 
-app.use(cors())
 
-var SerialPort = require('serialport');
-const parsers = SerialPort.parsers;
+class Connection{
+    newConnection(str){
+        const port = new serialPort(
+            'COM3',
+            {baudRate: 9600}
+        )
+        
+        const parser = new serialPort.parsers.Readline()
+        
+        port.pipe(parser)
+        parser.on('data', (line)=>{
+            console.log('Arduino dice: ' + line);
+            port.write(str)
+        })
+    }
+}
 
-const parser = new parsers.Readline({
-    delimiter: '\r\n'
-});
-
-var port = new SerialPort('/dev/tty.wchusbserialfa1410',{ 
-    baudRate: 9600,
-    dataBits: 8,
-    parity: 'none',
-    stopBits: 1,
-    flowControl: false
-});
-
-port.pipe(parser);
-
-router.get("/text",(req,res)=>{
-    const {total} = req.params;
-    port.write( "hi there" );
-})
-
-app.listen((3000),()=>{
-    console.log(`server starting at port 3000`);
-});
+const connection = new Connection();
+connection.newConnection("fcuk you bitch!");
+module.exports = connection;
